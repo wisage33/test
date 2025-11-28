@@ -25,12 +25,52 @@ function logMigrationList(list: [{ name: string }[], { file: string }[]]) {
     }
 }
 
+export interface TariffsBoxRow {
+    id: string;
+    warehouse_name: string;
+    geo_name: string | null;
+    date: string;
+    box_delivery_base: number | null;
+    box_delivery_coef_expr: number | null;
+    box_delivery_liter: number | null;
+    box_delivery_marketplace_base: number | null;
+    box_delivery_marketplace_coef_expr: number | null;
+    box_delivery_marketplace_liter: number | null;
+    box_storage_base: number | null;
+    box_storage_coef_expr: number | null;
+    box_storage_liter: number | null;
+    created_at: Date | null;
+    updated_at: Date | null;
+}
+
+export type TariffsBoxInsert = Omit<TariffsBoxRow, "id" | "created_at" | "updated_at">;
+
+export const TariffsBox = {
+    async deleteByDate(date: string) {
+        await knex("tariffs_box").where({ date }).del();
+    },
+
+    async insert(record: TariffsBoxInsert) {
+        await knex("tariffs_box").insert(record).onConflict(["warehouse_name", "date"]).merge();
+    },
+
+    async getCurrentSorted(): Promise<TariffsBoxRow[]> {
+        const today = new Date().toISOString().split("T")[0];
+        return await knex("tariffs_box").where({ date: today }).orderByRaw("COALESCE(box_delivery_coef_expr, 999999) ASC");
+    },
+
+    async getByDate(date?: string): Promise<TariffsBoxRow[]> {
+        const d = date || new Date().toISOString().split("T")[0];
+        return await knex("tariffs_box").where({ date: d }).orderByRaw("COALESCE(box_delivery_coef_expr, 999999) ASC");
+    },
+};
+
 function logSeedRun(result: [string[]]) {
-    if(result[0].length === 0) {
+    if (result[0].length === 0) {
         console.log("No seeds to run");
     }
     console.log(`Ran ${result[0].length} seed files`);
-    for(const seed of result[0]) {
+    for (const seed of result[0]) {
         console.log("- " + seed?.split(/\/|\\/).pop());
     }
     // Ran 5 seed files

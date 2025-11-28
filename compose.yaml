@@ -52,14 +52,8 @@ services:
       context: .
       dockerfile: Dockerfile
 
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PORT: ${APP_PORT}
-      NODE_ENV: production
+    env_file:
+      - .env
 
     ports:
       - ${APP_PORT}:${APP_PORT}
